@@ -1,0 +1,21 @@
+# Private parameters of vlm_nav_node (ROS 1). Same keys as vlm_nav_ros/config/vlm_nav_cfg.yaml.
+sensor_configs:
+  zed_camera_front:
+    image_topic: "/zed/zed_node/rgb/image_rect_color"  # raw or .../compressed
+    camera_info_topic: "/zed/zed_node/rgb/camera_info"
+    output_topic_prefix: "/zed/zed_node/rgb/vlm_nav"
+    max_size: [640, 480]
+    rotate: 0
+
+# Relative paths are resolved against the vlm_nav folder next to this package (roam/vlm_nav).
+# Absolute paths and $(find <pkg>)/... also work.
+vlm_nav_config_path: "config/prompts.yaml"
+
+vlm_nav_config_key: "nature_hiking"
+seg_model: "SAN"
+vlm_model: "gpt-6.1-sol"  # or a Gemini model ID, e.g. "gemini-3.6-flash"
+half_precision: true
+vlm_sensor_names: ["zed_camera_front"]
+vlm_duration: 10.0
+max_threads: 3
+segment_duration: 0.5

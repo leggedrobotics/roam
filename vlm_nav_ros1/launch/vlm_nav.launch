@@ -1,0 +1,7 @@
+<launch>
+  <arg name="vlm_nav_config" default="$(find vlm_nav_ros1)/config/vlm_nav_cfg.yaml"/>
+
+  <node pkg="vlm_nav_ros1" type="vlm_nav_node" name="vlm_nav_node" output="screen">
+    <rosparam command="load" file="$(arg vlm_nav_config)"/>
+  </node>
+</launch>

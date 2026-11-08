@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.egg-info/
+
+# ROS 2 workspace
+build/
+install/
+log/
+
+# Model weights and data
+*.pt
+*.pth
+*.npy
+rosbags/
+
+# example.py --save_images output
+result/

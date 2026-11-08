@@ -1,0 +1,35 @@
+# elevation_mapping_cupy setup that fuses vlm_nav_node's semantic images into the elevation map.
+# Load it after elevation_mapping_cupy's config/core/core_param.yaml (see vlm_nav_elevation_mapping.launch.py).
+# Needs an elevation_mapping_cupy ROS 2 build with semantic layers (see examples/elevation_mapping/README.md).
+#
+# Topic names match the default camera in vlm_nav_cfg.yaml: vlm_nav_node publishes
+# <output_topic_prefix>_sem (32FC3: risk, steppable, preferred_area) and <camera_info_topic>_sem.
+# Replace the frames and the point cloud topic with your robot's.
+/elevation_mapping_node:
+  ros__parameters:
+    map_frame: 'odom'
+    base_frame: 'base'
+    corrected_map_frame: 'odom'
+    initialize_frame_id: ['base']
+
+    pointcloud_channel_fusions:
+      none: 'none'
+    image_channel_fusions:
+      # risk, steppable and preferred_area are continuous [0, 1] values: exponential smoothing over frames.
+      default: 'exponential'
+
+    subscribers:
+      lidar:
+        topic_name: '/lidar/points'
+        data_type: pointcloud
+      vlm_nav_front:
+        topic_name: '/zed/zed_node/rgb/vlm_nav_sem'
+        camera_info_topic_name: '/zed/zed_node/rgb/camera_info_sem'
+        channels: ['risk', 'steppable', 'preferred_area']
+        data_type: image
+
+    publishers:
+      elevation_map_raw:
+        layers: ['elevation', 'traversability', 'variance', 'risk', 'steppable', 'preferred_area']
+        basic_layers: ['elevation']
+        fps: 5.0

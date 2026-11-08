@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from vlm_nav_ros1.vlm_nav_node import main
+
+if __name__ == "__main__":
+    main()

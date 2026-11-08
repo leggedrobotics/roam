@@ -1,0 +1,2 @@
+# No map post-processing plugins: the example only reads the raw elevation and the fused semantic layers.
+{}

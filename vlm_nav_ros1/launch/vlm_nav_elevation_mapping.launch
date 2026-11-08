@@ -1,0 +1,14 @@
+<!-- vlm_nav_node plus elevation_mapping_cupy (main branch) fusing its risk, steppable and preferred-area images. -->
+<launch>
+  <arg name="vlm_nav_config" default="$(find vlm_nav_ros1)/config/vlm_nav_cfg.yaml"/>
+  <arg name="elevation_mapping_config" default="$(find vlm_nav_ros1)/config/elevation_mapping_vlm_nav.yaml"/>
+
+  <include file="$(find vlm_nav_ros1)/launch/vlm_nav.launch">
+    <arg name="vlm_nav_config" value="$(arg vlm_nav_config)"/>
+  </include>
+
+  <node pkg="elevation_mapping_cupy" type="elevation_mapping_node" name="elevation_mapping" output="screen">
+    <rosparam command="load" file="$(find elevation_mapping_cupy)/config/core/core_param.yaml"/>
+    <rosparam command="load" file="$(arg elevation_mapping_config)"/>
+  </node>
+</launch>

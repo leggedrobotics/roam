@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>vlm_nav_ros1</name>
+  <version>0.1.0</version>
+  <description>ROS 1 node for Vision-Language Model navigation: publishes risk, steppable and preferred-area images</description>
+
+  <maintainer email="takahiro.miki1992@gmail.com">Takahiro Miki</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>rospkg</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+</package>
