@@ -1,13 +1,23 @@
 # ROAM
 
-<!-- TODO(publication): paper title, authors, venue, project page, arXiv/DOI links -->
+Code for **Bridging vision-language reasoning and learned control for legged navigation in the wild**,
+*Science Robotics* (2026). [Paper (DOI)](https://doi.org/10.1126/scirobotics.aee1549)
+
+Takahiro Miki, Robin Schmid, Manthan Patel, Turcan Tuna, Julia Richter, Julian Nubert, Joonho Lee,
+Matthias Müller and Marco Hutter
+
+![ROAM deployments](docs/images/deployments.jpg)
 
 ROAM uses a Vision-Language Model (VLM) to read the scene in front of a legged robot and
 assign each terrain class a **risk**, **steppable** and **preferred area** value. An
 open-vocabulary segmentation network (SAN) then turns those labels into dense per-pixel maps
-that the robot's local planner can use.
+that are fused into an elevation map for the robot's locomotion and navigation policies.
 
-![Method Overview](docs/images/method_overview.png)
+![ROAM pipeline](docs/images/roam_overview.jpg)
+
+*The ROAM pipeline (Fig. 1 of the paper). This repository covers the VLM analysis and the
+open-vocabulary segmentation, and feeds the semantic images into elevation_mapping_cupy
+(see [`examples/elevation_mapping`](examples/elevation_mapping)).*
 
 This repository contains three packages:
 
@@ -144,7 +154,20 @@ elevation_mapping_cupy's ROS 1 node (`main` branch) with
 
 ## Citation
 
-<!-- TODO(publication): BibTeX -->
+If you use this code, please cite:
+
+```bibtex
+@article{miki2026roam,
+  title   = {Bridging vision-language reasoning and learned control for legged navigation in the wild},
+  author  = {Miki, Takahiro and Schmid, Robin and Patel, Manthan and Tuna, Turcan and Richter, Julia and
+             Nubert, Julian and Lee, Joonho and M{\"u}ller, Matthias and Hutter, Marco},
+  journal = {Science Robotics},
+  volume  = {11},
+  pages   = {eaee1549},
+  year    = {2026},
+  doi     = {10.1126/scirobotics.aee1549}
+}
+```
 
 ## License
 
