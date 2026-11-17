@@ -99,7 +99,8 @@ steppable and preferred-area values become layers of a 2.5D map you can plan on.
 
 The prompt is assembled from [`vlm_nav/config/prompts.yaml`](vlm_nav/config/prompts.yaml):
 a task description, a robot description, analysis guidelines, and the output fields to
-estimate. The `nature_hiking` setup is the one used on ANYmal.
+estimate. It is the prompt from the paper (the full prompt in the supplementary material), which
+also tells the VLM to follow signs. The `nature_hiking` setup is the one used on ANYmal.
 
 ## ROS 2
 
