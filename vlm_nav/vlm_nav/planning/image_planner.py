@@ -1,4 +1,4 @@
-"""A* path planning in image space over ROAM's risk and preferred-area maps.
+"""A* path planning in image space over ROAM's risk, preferred-area and steppable maps.
 
 All maps are (H, W) float arrays aligned with the camera image. Pixels are (row, col).
 """
@@ -7,8 +7,17 @@ from typing import Optional, Tuple
 
 import numpy as np
 import pyastar2d
+from PIL import Image, ImageFilter
 
 Pixel = Tuple[int, int]
+
+
+def inflate(mask: np.ndarray, radius: int) -> np.ndarray:
+    """Grow a boolean mask by `radius` pixels (square neighbourhood)."""
+    if radius <= 0 or not mask.any():
+        return mask
+    grown = Image.fromarray(mask.astype(np.uint8) * 255).filter(ImageFilter.MaxFilter(2 * radius + 1))
+    return np.asarray(grown) > 0
 
 
 def build_cost_map(
@@ -18,14 +27,25 @@ def build_cost_map(
     risk_weight: float = 100.0,
     preferred_threshold: float = 0.5,
     max_depth_scale: float = 50.0,
+    preferred_weight: Optional[float] = None,
+    steppable: Optional[np.ndarray] = None,
+    steppable_threshold: float = 0.5,
+    inflate_radius: int = 0,
 ) -> np.ndarray:
-    """Per-pixel step cost for A*: 1 + risk_weight * risk, blocked (inf) outside the preferred area.
+    """Per-pixel step cost for A*: 1 + risk_weight * risk, plus the preferred-area and steppable terms.
+
+    preferred_weight=None blocks (inf) every pixel outside the preferred area. A number instead adds
+    preferred_weight * (1 - preferred), so the path favours the preferred area but may leave it. With a
+    steppable map, pixels below steppable_threshold are blocked, grown by inflate_radius pixels so the path
+    keeps some clearance from water, trees and walls.
 
     With a depth map, the cost is also scaled by depth relative to the nearest ground, because a pixel far
     away covers more ground than one at the robot's feet. Paths then trade risk against walking distance
     instead of pixel count. The cost never drops below 1, which keeps the A* heuristic admissible.
     """
     cost = 1.0 + risk_weight * np.clip(risk, 0.0, 1.0)
+    if preferred is not None and preferred_weight is not None:
+        cost = cost + preferred_weight * (1.0 - np.clip(preferred, 0.0, 1.0))
     if depth is not None:
         valid = np.isfinite(depth) & (depth > 0)
         if valid.any():
@@ -33,8 +53,10 @@ def build_cost_map(
             scale = np.clip(np.where(valid, depth, near) / near, 1.0, max_depth_scale)
             cost = cost * scale
     cost = cost.astype(np.float32)
-    if preferred is not None:
+    if preferred is not None and preferred_weight is None:
         cost[preferred < preferred_threshold] = np.inf
+    if steppable is not None:
+        cost[inflate(steppable < steppable_threshold, inflate_radius)] = np.inf
     return cost
 
 

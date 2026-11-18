@@ -81,6 +81,11 @@ This asks the VLM for labels, segments the image and shows one map per output fi
 Useful flags: `--vlm_model` (any OpenAI `gpt-*` or Gemini `gemini-*` model ID, default `gemini-4-hydrogen`), `--save_images` (writes to `result/`),
 `-d` (per-label heatmaps).
 
+On the lake image, `gemini-4-hydrogen` marks the water, trees and buildings as risky, the grass as safe
+but not preferred, and the dirt trail as the preferred path:
+
+![Lake: risk, steppable, preferred area](docs/images/hiking_lake_maps.png)
+
 ### Click-and-plan demo
 
 ```bash
@@ -90,10 +95,18 @@ python3 click_plan_demo.py example_data/hiking_lake.jpg --maps_dir result/hiking
 ```
 
 Left click a goal on the image and A* plans a path from the robot's feet (bottom centre; right click moves
-the start). The cost per pixel is `1 + 100 * risk`, pixels outside the preferred area are blocked, and the
-cost is scaled by monocular depth so a far pixel costs as much as the ground it covers. Drop `--maps_dir`
-to ask the VLM live, add `--no_depth` to plan on raw pixels, and pass `--goal row,col --save plan.png` to
-run without a display. The planner itself is in [`vlm_nav/vlm_nav/planning`](vlm_nav/vlm_nav/planning).
+the start). The cost per pixel is `1 + 100 * risk + 1000 * (1 - preferred_area)`, so the path sticks to
+the preferred area but can leave it to reach a goal. Non-steppable ground is blocked and grown by a
+10-pixel clearance. The cost is scaled by monocular depth so a far pixel costs as much as the ground it
+covers. Drop `--maps_dir` to ask the VLM live, tune `--preferred_weight` (a negative value blocks
+everything outside the preferred area) and `--inflate`, add `--no_depth` to plan on raw pixels, and pass
+`--goal row,col --save plan.png` to run without a display. The planner itself is in
+[`vlm_nav/vlm_nav/planning`](vlm_nav/vlm_nav/planning).
+
+With a goal just behind the lake (`--goal 245,330`), the path crosses the grass to the trail, follows it
+past the end of the lake, and keeps its distance from the water and reeds:
+
+![Lake: A* path around the lake to a goal behind it](docs/images/hiking_lake_click_plan.png)
 
 ### Beyond risk: friction, grasping, push or pull
 
