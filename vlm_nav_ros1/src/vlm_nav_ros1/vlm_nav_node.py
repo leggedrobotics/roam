@@ -142,7 +142,7 @@ class VLMNavNode:
         vlm_nav_config_path = resolve_config_path(rospy.get_param("~vlm_nav_config_path", "config/prompts.yaml"))
         vlm_nav_config_key = rospy.get_param("~vlm_nav_config_key", "nature_hiking")
         seg_model = rospy.get_param("~seg_model", "SAN")
-        vlm_model = rospy.get_param("~vlm_model", "gpt-6.1-sol")
+        vlm_model = rospy.get_param("~vlm_model", "gemini-4-hydrogen")
         half_precision = rospy.get_param("~half_precision", True)
         rospy.loginfo("Using VLM nav config path: %s", vlm_nav_config_path)
         rospy.loginfo("Using VLM: %s", vlm_model)

@@ -39,8 +39,9 @@ pip3 install -e .   # Gemini (default) and OpenAI models; Gemini needs Python 3.
 
 The default VLM is `gemini-4-hydrogen` with thinking turned off, so labels come back quickly.
 Set `GEMINI_API_KEY` (from [Google AI Studio](https://aistudio.google.com/apikey)), or pass an
-OpenAI model such as `--vlm_model gpt-6.1-sol` with `OPENAI_API_KEY`. On Python 3.8 (ROS Noetic)
-only OpenAI models work.
+OpenAI model such as `--vlm_model gpt-6.1-sol` with `OPENAI_API_KEY`. On Python 3.8 (ROS Noetic),
+where google-genai does not install, Gemini models go through Gemini's OpenAI-compatible endpoint
+with the same key.
 
 ### Segmentation backend
 
@@ -66,7 +67,7 @@ pip3 install -e "vlm_nav[san]"
 
 ```bash
 export OPENAI_API_KEY=<your key>   # for OpenAI models (gpt-*)
-export GEMINI_API_KEY=<your key>   # for Gemini models (gemini-*, needs the gemini extra)
+export GEMINI_API_KEY=<your key>   # for Gemini models (gemini-*, the default)
 ```
 
 ## Quick start
