@@ -34,9 +34,13 @@ Install PyTorch for your CUDA version first by following the [official instructi
 ```bash
 git clone git@github.com:leggedrobotics/roam.git
 cd roam/vlm_nav
-pip3 install -e .            # OpenAI models; works on Python 3.8+
-pip3 install -e ".[gemini]"  # also Google Gemini models (Python 3.9+)
+pip3 install -e .   # Gemini (default) and OpenAI models; Gemini needs Python 3.9+
 ```
+
+The default VLM is `gemini-4-hydrogen` with thinking turned off, so labels come back quickly.
+Set `GEMINI_API_KEY` (from [Google AI Studio](https://aistudio.google.com/apikey)), or pass an
+OpenAI model such as `--vlm_model gpt-6.1-sol` with `OPENAI_API_KEY`. On Python 3.8 (ROS Noetic)
+only OpenAI models work.
 
 ### Segmentation backend
 
@@ -73,7 +77,7 @@ python3 example.py example_data/hiking_lake.jpg --seg_model api
 ```
 
 This asks the VLM for labels, segments the image and shows one map per output field.
-Useful flags: `--vlm_model` (any OpenAI `gpt-*` or Gemini `gemini-*` model ID, default `gpt-6.1-sol`), `--save_images` (writes to `result/`),
+Useful flags: `--vlm_model` (any OpenAI `gpt-*` or Gemini `gemini-*` model ID, default `gemini-4-hydrogen`), `--save_images` (writes to `result/`),
 `-d` (per-label heatmaps).
 
 ### Click-and-plan demo
@@ -89,6 +93,15 @@ the start). The cost per pixel is `1 + 100 * risk`, pixels outside the preferred
 cost is scaled by monocular depth so a far pixel costs as much as the ground it covers. Drop `--maps_dir`
 to ask the VLM live, add `--no_depth` to plan on raw pixels, and pass `--goal row,col --save plan.png` to
 run without a display. The planner itself is in [`vlm_nav/vlm_nav/planning`](vlm_nav/vlm_nav/planning).
+
+### Beyond risk: friction, grasping, push or pull
+
+[`examples/property_maps`](examples/property_maps) uses the same pipeline to estimate other
+properties: how slippery and how soft the ground is, where a gripper should grasp and what it
+must avoid, which objects move, whether to push or pull them, and their rough mass. Each is a
+few lines of config in `prompts.yaml`.
+
+![Desk: graspable, grasp preference, avoid, friction, fragility](examples/property_maps/figures/messy_desk_tabletop_manipulation.png)
 
 ### Elevation map example
 

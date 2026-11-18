@@ -16,7 +16,7 @@ class VLMNavAgent:
         prompt_cfg_path: str,
         prompt_setup_key: str,
         resize: bool = True,
-        vlm_model: str = "gpt-6.1-sol",
+        vlm_model: str = "gemini-4-hydrogen",
         segmentation_model: Literal["SAN", "api"] = "SAN",
         resize_shape: Tuple[int, int] = (640, 480),
         use_memory: bool = True,

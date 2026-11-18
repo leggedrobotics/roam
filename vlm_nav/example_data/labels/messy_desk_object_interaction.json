@@ -1,0 +1,62 @@
+{
+  "mug": {
+    "movable": 1.0,
+    "pushable": 0.2,
+    "pullable": 0.3,
+    "mass": 0.37
+  },
+  "water_bottle": {
+    "movable": 1.0,
+    "pushable": 0.2,
+    "pullable": 0.2,
+    "mass": 0.54
+  },
+  "book": {
+    "movable": 1.0,
+    "pushable": 0.8,
+    "pullable": 0.5,
+    "mass": 0.4
+  },
+  "box": {
+    "movable": 1.0,
+    "pushable": 0.8,
+    "pullable": 0.4,
+    "mass": 0.4
+  },
+  "computer_mouse": {
+    "movable": 1.0,
+    "pushable": 1.0,
+    "pullable": 0.6,
+    "mass": 0.25
+  },
+  "keyboard": {
+    "movable": 1.0,
+    "pushable": 1.0,
+    "pullable": 0.3,
+    "mass": 0.45
+  },
+  "monitor": {
+    "movable": 0.5,
+    "pushable": 0.2,
+    "pullable": 0.2,
+    "mass": 0.65
+  },
+  "cable": {
+    "movable": 1.0,
+    "pushable": 0.0,
+    "pullable": 1.0,
+    "mass": 0.1
+  },
+  "desk": {
+    "movable": 0.0,
+    "pushable": 0.0,
+    "pullable": 0.0,
+    "mass": 0.87
+  },
+  "wall": {
+    "movable": 0.0,
+    "pushable": 0.0,
+    "pullable": 0.0,
+    "mass": 1.0
+  }
+}

@@ -13,7 +13,7 @@ vlm_nav_node:
 
     vlm_nav_config_key: "nature_hiking"
     seg_model: "SAN"
-    vlm_model: "gpt-6.1-sol"  # or a Gemini model ID, e.g. "gemini-3.6-flash"
+    vlm_model: "gemini-4-hydrogen"  # or an OpenAI model ID, e.g. "gpt-6.1-sol"
     half_precision: true
     vlm_sensor_names: ["zed_camera_front"]
     vlm_duration: 10.0

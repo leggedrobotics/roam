@@ -174,7 +174,7 @@ class VLMNavNode(Node):
         self.declare_parameter("vlm_nav_config_path", "config/prompts.yaml")
         self.declare_parameter("vlm_nav_config_key", "nature_hiking")
         self.declare_parameter("seg_model", "SAN")
-        self.declare_parameter("vlm_model", "gpt-6.1-sol")
+        self.declare_parameter("vlm_model", "gemini-4-hydrogen")
         self.declare_parameter("half_precision", True)
         self.declare_parameter("max_threads", 5)
         self.declare_parameter("segment_duration", 0.5)

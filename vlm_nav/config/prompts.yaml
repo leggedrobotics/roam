@@ -1,9 +1,16 @@
 # The prompt from the paper (Supplementary Fig. "Full VLM prompt"), also used for the sign experiments.
+# `nature_hiking` is that prompt. The other setups are extra examples, not from the paper: they show
+# that the same label -> value pipeline can estimate other properties (friction, where to grasp, ...).
 task:
   navigation: |
     Let's play a role play.
     I give you an image taken by an onboard camera of a robot. Please analyze the image and identify potential hazards and safe paths.
     Focus on ground types (e.g., gravel, sand, mud) and obstacles (e.g., trees, bushes, people, cars, fences, walls, buildings).
+    You can guide the robot by your output on labels and associated values.
+  manipulation: |
+    Let's play a role play.
+    I give you an image taken by a camera on a robot arm. Please analyze the image and identify the objects, and the parts of objects, that the robot may touch or pick up.
+    Focus on what each object is made of, which parts are meant to be held (e.g., handles, rims, knobs), and which parts must not be touched or squeezed.
     You can guide the robot by your output on labels and associated values.
 robot:
   anymal: |
@@ -12,6 +19,11 @@ robot:
     You are equipped to handle uneven surfaces like stairs and rocky paths but cannot cross water or leap over large obstacles.
     Your programming prioritizes safety, treating dense bushes, particularly alongside roads, as mid-risk (risk value 0.5) and low-risk to hiking trail.
     You can walk over stairs or slopes, and they should be assigned a lower risk value (0.0 to 0.5) depending on the steepness. You can walk on snows but less preferred than solid ground.
+  manipulator: |
+    Robot description:
+    You are a 7-DoF robot arm with a two-finger parallel gripper (maximum opening 8 cm, maximum payload 3 kg) mounted next to a table.
+    You can grasp objects or object parts narrower than 8 cm, such as handles, rims, edges and small objects.
+    You cannot lift heavy furniture, and you should avoid sharp, hot or very fragile parts.
 
 system:
   guidelines: |
@@ -28,6 +40,16 @@ system:
     - If there're multiple images, combine all analysis results into one.
     - Avoid using similar or confusing labels (e.g., gravel_path and rocky_ground) in the same image.
     - Avoid confusing labels (e.g., mountain_terrain, rocky_mountain)
+    - First analyze the image and describe it.
+  guidelines_manipulation: |
+    Guidelines for your analysis:
+    - Use simple categories recognizable by a semantic segmentation network (mug, handle, glass, cutting_board).
+    - Split an object into parts when the parts should be treated differently (e.g., knife_handle and knife_blade, pan_handle and pan).
+    - Avoid labels that imply direction or position, such as 'left,' 'right,' or 'front.'
+    - Include the table or support surface, and the background, so every pixel gets a label.
+    - Don't include lighting conditions (like bright, dark, shadow) in your analysis.
+    - Output around 5 to 12 labels.
+    - Avoid using similar or confusing labels (e.g., cup and mug) in the same image.
     - First analyze the image and describe it.
 
 output_fields:
@@ -56,6 +78,87 @@ output_fields:
     value: <preferred or not in float>
     default: 0.0
 
+  friction:
+    prompt: |
+      Assign a friction value on a scale from 0.0 (very slippery) to 1.0 (high grip) for different categories.
+      The value is the friction coefficient against a rubber foot or gripper pad, capped at 1.0. Judge it from the material and its visible condition:
+      wet ice or ice under water is about 0.05; ice, slush, packed or trampled snow are 0.1 to 0.2; fresh loose snow, mud,
+      polished metal or glass are 0.2 to 0.3; wet tiles, wet grass or wet smooth stone are 0.4 to 0.5;
+      dry soil, gravel, wood or plastic are 0.5 to 0.7; dry rough rock, concrete, asphalt, carpet or rubber are 0.8 to 1.0.
+      Snow and ice on top of a surface decide its value, not the surface underneath.
+    value: <friction value in float>
+    default: 0.5
+
+  softness:
+    prompt: |
+      Assign a softness value on a scale from 0.0 (rigid) to 1.0 (very soft or deformable) for different categories.
+      Concrete, asphalt, rock, wood and metal are rigid (0.0 to 0.1); packed soil, gravel and short grass give a little (0.3 to 0.5);
+      tall grass, moss, mud, loose sand and deep snow sink under a foot (0.7 to 1.0).
+    value: <softness value in float>
+    default: 0.0
+
+  graspable:
+    prompt: |
+      Assign a graspable value on a scale from 0.0 (cannot be grasped) to 1.0 (can be grasped) for different categories.
+      A part is graspable if the gripper can close on it and lift or move it. Tables, walls and parts wider than the gripper are not graspable.
+      Output 0.0 or 1.0
+    value: <graspable or not in float>
+    default: 0.0
+
+  grasp_preference:
+    prompt: |
+      Assign a grasp_preference value on a scale from 0.0 (do not grasp here) to 1.0 (best place to grasp) for different categories.
+      Parts designed to be held (handles, knobs, rims, the body of a bottle) get high values.
+      Parts that are sharp, hot, fragile, food, or likely to spill or deform get low values.
+    value: <grasp preference in float>
+    default: 0.0
+
+  fragility:
+    prompt: |
+      Assign a fragility value on a scale from 0.0 (robust) to 1.0 (very fragile) for different categories.
+      Glass, ceramics, eggs, ripe fruit and thin plastic are fragile and need a gentle grasp; metal, wood and thick plastic are robust.
+    value: <fragility value in float>
+    default: 0.5
+
+  avoid:
+    prompt: |
+      Assign an avoid value on a scale from 0.0 (fine to touch) to 1.0 (must not touch or bump) for different categories.
+      People, pets, hot surfaces, flames, knife blades, open liquids, screens and anything that would fall, spill or break if bumped get high values.
+      Surfaces the robot works on and robust objects get low values.
+    value: <avoid value in float>
+    default: 0.5
+
+  movable:
+    prompt: |
+      Assign a movable value on a scale from 0.0 (fixed in place) to 1.0 (moves easily) for different categories.
+      Walls, counters, sinks, built-in cabinets and heavy furniture are fixed (0.0); doors, drawers and chairs move along a constrained path (0.5);
+      small free objects such as cups, bottles, plates and books move freely (1.0).
+    value: <movable value in float>
+    default: 0.0
+
+  pushable:
+    prompt: |
+      Assign a pushable value on a scale from 0.0 (do not push) to 1.0 (push to operate or move it) for different categories.
+      High for things operated or moved by pushing: buttons, keys, closing drawers and doors, sliding boxes and chairs across the floor.
+      Low for things that would tip over, spill or break when pushed (tall glasses, stacked dishes, liquids).
+    value: <pushable value in float>
+    default: 0.0
+
+  pullable:
+    prompt: |
+      Assign a pullable value on a scale from 0.0 (do not pull) to 1.0 (pull to operate or move it) for different categories.
+      High for things operated by pulling: drawer handles, door handles, knobs, cords, levers and tabs. Low for fixed or fragile parts.
+    value: <pullable value in float>
+    default: 0.0
+
+  mass:
+    prompt: |
+      Assign a mass value on a logarithmic scale for different categories: 0.0 is about 10 g or less, 0.25 about 100 g, 0.5 about 1 kg,
+      0.75 about 10 kg and 1.0 is 100 kg or more. Estimate the typical mass of one object of that category.
+      Fixed structures such as walls, counters and sinks are 1.0.
+    value: <mass on the log scale in float>
+    default: 1.0
+
 setups:
   nature_hiking:
     task: navigation
@@ -65,3 +168,39 @@ setups:
       - risk
       - steppable
       - preferred_area
+
+  # Extra example: the paper's navigation prompt asking for physical terrain properties instead:
+  # how slippery (friction) and how much the ground gives way (softness).
+  terrain_properties:
+    task: navigation
+    robot: anymal
+    system: guidelines
+    output_fields:
+      - friction
+      - softness
+      - steppable
+
+  # Extra example: tabletop manipulation. Labels are object parts; the layers say where to grasp and how.
+  tabletop_manipulation:
+    task: manipulation
+    robot: manipulator
+    system: guidelines_manipulation
+    element: object part
+    output_fields:
+      - graspable
+      - grasp_preference
+      - avoid
+      - friction
+      - fragility
+
+  # Extra example: which objects move, and whether to push or pull them, plus their rough mass.
+  object_interaction:
+    task: manipulation
+    robot: manipulator
+    system: guidelines_manipulation
+    element: object part
+    output_fields:
+      - movable
+      - pushable
+      - pullable
+      - mass

@@ -249,7 +249,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--data", default=os.path.join(HERE, "data", "seealpsee_trail"))
     parser.add_argument("--source", choices=["recorded", "segment", "vlm"], default="recorded")
-    parser.add_argument("--vlm_model", default="gpt-6.1-sol")
+    parser.add_argument("--vlm_model", default="gemini-4-hydrogen")
     parser.add_argument("--seg_model", default="SAN", help="SAN (in-process) or api (server)")
     parser.add_argument("--resolution", type=float, default=0.1)
     parser.add_argument("--map_length", type=float, default=30.0)

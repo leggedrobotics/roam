@@ -1,0 +1,42 @@
+{
+  "snow": {
+    "friction": 0.2,
+    "softness": 0.7,
+    "steppable": 1.0
+  },
+  "stairs": {
+    "friction": 0.5,
+    "softness": 0.0,
+    "steppable": 1.0
+  },
+  "asphalt": {
+    "friction": 0.6,
+    "softness": 0.0,
+    "steppable": 1.0
+  },
+  "wall": {
+    "friction": 0.5,
+    "softness": 0.0,
+    "steppable": 0.0
+  },
+  "railing": {
+    "friction": 0.3,
+    "softness": 0.0,
+    "steppable": 0.0
+  },
+  "building": {
+    "friction": 0.5,
+    "softness": 0.0,
+    "steppable": 0.0
+  },
+  "tree": {
+    "friction": 0.5,
+    "softness": 0.2,
+    "steppable": 0.0
+  },
+  "sky": {
+    "friction": 0.0,
+    "softness": 0.0,
+    "steppable": 0.0
+  }
+}

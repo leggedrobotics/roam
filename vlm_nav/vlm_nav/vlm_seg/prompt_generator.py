@@ -67,10 +67,13 @@ class ImageLabelPromptGenerator(object):
         system_prompt: str,
         use_memory: bool = True,
         memory_length: int = 3,
+        element_name: str = "terrain element",
     ):
         self.task_prompt = task_prompt
         self.robot_prompt = robot_prompt
         self.system_prompt = system_prompt
+        # What one label stands for, e.g. "terrain element" or "object part"
+        self.element_name = element_name
 
         # Output fields information is stored in a dictionary with the output_json_key as the key
         self.output_fields = {}
@@ -188,14 +191,14 @@ class ImageLabelPromptGenerator(object):
 
         The fields are ordered so the model writes its analysis before committing to values.
         """
-        label_fields = {"label": (str, Field(description="Terrain element as a short snake_case label"))}
+        label_fields = {"label": (str, Field(description=f"{self.element_name.capitalize()} as a short snake_case label"))}
         for key, value in self.output_fields.items():
             label_fields[key] = (float, Field(description=value["value"]))
         TerrainLabel = create_model("TerrainLabel", **label_fields)
         return create_model(
             "TerrainReport",
             analysis=(str, Field(description="Your analysis of the scene")),
-            labels=(List[TerrainLabel], Field(description="Every terrain element with its assigned values")),
+            labels=(List[TerrainLabel], Field(description=f"Every {self.element_name} with its assigned values")),
             memory=(str, Field(description="Memory text useful to keep consistency")),
         )
 
@@ -224,7 +227,7 @@ class ImageLabelPromptGenerator(object):
         # The structure itself is enforced by response_schema().
         fields = ", ".join(self.output_fields.keys())
         return (
-            "**Conclude with a report.** It should categorize each terrain element (snake_case label) "
+            f"**Conclude with a report.** It should categorize each {self.element_name} (snake_case label) "
             f"with its assigned values ({fields}), and include a memory text useful to keep consistency."
         )
 
@@ -277,6 +280,7 @@ def create_prompt_generator_from_yaml(yaml_file_path: str, setup_key: str, use_m
         robot_prompt=robot_prompt,
         system_prompt=system_prompt,
         use_memory=use_memory,
+        element_name=setup.get("element", "terrain element"),
     )
 
     for field in setup["output_fields"]:

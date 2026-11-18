@@ -109,7 +109,7 @@ def main():
     parser.add_argument("-c", "--config_path", type=str, default="config/prompts.yaml")
     parser.add_argument("-t", "--task", type=str, default="nature_hiking")
     parser.add_argument("-s", "--seg_model", type=str, default="SAN", help="SAN (in-process) or api (server)")
-    parser.add_argument("--vlm_model", type=str, default="gpt-6.1-sol", help="OpenAI (gpt-*) or Gemini (gemini-*)")
+    parser.add_argument("--vlm_model", type=str, default="gemini-4-hydrogen", help="OpenAI (gpt-*) or Gemini (gemini-*)")
     parser.add_argument("--no_depth", action="store_true", help="Plan on pixels without depth scaling")
     parser.add_argument("--risk_weight", type=float, default=100.0, help="Cost of a fully risky pixel")
     parser.add_argument("--start", type=parse_pixel, help="Start pixel 'row,col' (default: bottom centre)")

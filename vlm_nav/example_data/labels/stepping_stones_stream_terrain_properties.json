@@ -1,0 +1,37 @@
+{
+  "stepping stones": {
+    "friction": 0.7,
+    "softness": 0.0,
+    "steppable": 1.0
+  },
+  "water": {
+    "friction": 0.0,
+    "softness": 1.0,
+    "steppable": 0.0
+  },
+  "grass": {
+    "friction": 0.6,
+    "softness": 0.6,
+    "steppable": 1.0
+  },
+  "bog": {
+    "friction": 0.3,
+    "softness": 0.9,
+    "steppable": 0.2
+  },
+  "dirt path": {
+    "friction": 0.7,
+    "softness": 0.3,
+    "steppable": 1.0
+  },
+  "mountain": {
+    "friction": 0.7,
+    "softness": 0.1,
+    "steppable": 0.0
+  },
+  "sky": {
+    "friction": 0.0,
+    "softness": 0.0,
+    "steppable": 0.0
+  }
+}

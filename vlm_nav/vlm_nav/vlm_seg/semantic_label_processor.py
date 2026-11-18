@@ -202,7 +202,7 @@ class SemanticLabelProcessor:
             [
                 (
                     float(vocab_values[k][layer_name])
-                    if isinstance(vocab_values[k][layer_name], (float, bool, str))
+                    if isinstance(vocab_values[k][layer_name], (int, float, bool, str))
                     else default_values[layer_name]
                 )
                 for k in vocab_filtered

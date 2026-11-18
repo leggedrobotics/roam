@@ -4,10 +4,11 @@ from .openai_client import OpenAIClient
 
 
 def create_client(model: str, **kwargs) -> VLMClient:
-    """Pick the provider from the model ID, e.g. "gpt-6.1-sol" or "gemini-3.6-flash".
+    """Pick the provider from the model ID, e.g. "gemini-4-hydrogen" or "gpt-6.1-sol".
 
     kwargs go to the client: temperature, max_output_tokens, max_retries, and for OpenAI also
-    image_detail and reasoning_effort.
+    image_detail and reasoning_effort; for Gemini also thinking_budget
+    (default 0, no thinking).
     """
     if model.startswith("gemini"):
         return GeminiClient(model, **kwargs)

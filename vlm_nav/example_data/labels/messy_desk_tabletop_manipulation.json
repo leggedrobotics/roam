@@ -1,0 +1,72 @@
+{
+  "mug": {
+    "graspable": 1.0,
+    "grasp_preference": 0.9,
+    "avoid": 0.6,
+    "friction": 0.5,
+    "fragility": 0.8
+  },
+  "water_bottle": {
+    "graspable": 1.0,
+    "grasp_preference": 1.0,
+    "avoid": 0.2,
+    "friction": 0.4,
+    "fragility": 0.2
+  },
+  "book": {
+    "graspable": 1.0,
+    "grasp_preference": 0.7,
+    "avoid": 0.0,
+    "friction": 0.7,
+    "fragility": 0.1
+  },
+  "box": {
+    "graspable": 1.0,
+    "grasp_preference": 0.6,
+    "avoid": 0.0,
+    "friction": 0.6,
+    "fragility": 0.2
+  },
+  "computer_mouse": {
+    "graspable": 1.0,
+    "grasp_preference": 0.8,
+    "avoid": 0.1,
+    "friction": 0.6,
+    "fragility": 0.4
+  },
+  "keyboard": {
+    "graspable": 1.0,
+    "grasp_preference": 0.4,
+    "avoid": 0.2,
+    "friction": 0.6,
+    "fragility": 0.4
+  },
+  "monitor": {
+    "graspable": 0.0,
+    "grasp_preference": 0.1,
+    "avoid": 1.0,
+    "friction": 0.4,
+    "fragility": 0.9
+  },
+  "cable": {
+    "graspable": 1.0,
+    "grasp_preference": 0.3,
+    "avoid": 0.4,
+    "friction": 0.7,
+    "fragility": 0.1
+  },
+  "desk": {
+    "graspable": 0.0,
+    "grasp_preference": 0.0,
+    "avoid": 0.0,
+    "friction": 0.6,
+    "fragility": 0.1
+  },
+  "wall": {
+    "graspable": 0.0,
+    "grasp_preference": 0.0,
+    "avoid": 0.2,
+    "friction": 0.5,
+    "fragility": 0.3
+  }
+}

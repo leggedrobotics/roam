@@ -20,14 +20,22 @@ parser.add_argument(
 )
 
 parser.add_argument("-s", "--seg_model", type=str, default="SAN", help="The segmentation model to use. SAN or api")
-parser.add_argument("-l", "--labels", type=str, required=False, help="The json label input as string")
+parser.add_argument(
+    "-l", "--labels", type=str, required=False, help="Labels as a JSON string or a .json file; skips the VLM"
+)
 parser.add_argument("-d", "--debug_visualizations", action="store_true", help="Enable debug visualizations")
 
 parser.add_argument(
-    "--vlm_model", type=str, default="gpt-6.1-sol", help="OpenAI (gpt-*) or Gemini (gemini-*) model ID"
+    "--vlm_model", type=str, default="gemini-4-hydrogen", help="OpenAI (gpt-*) or Gemini (gemini-*) model ID"
 )
 parser.add_argument("--half_precision", action="store_true", help="Use half precision for the VLM model")
 parser.add_argument("--save_images", action="store_true", help="Save images after processing")
+parser.add_argument(
+    "--softmax_temperature",
+    type=float,
+    help="Sharpness of the label assignment per pixel (default 0.3). Lower values give crisper maps in "
+    "cluttered indoor scenes, where the segmentation scores of many small objects are close together.",
+)
 
 args = parser.parse_args()
 
@@ -39,6 +47,8 @@ vlm_agent = VLMNavAgent(
     vlm_model=args.vlm_model,
     half_precision=args.half_precision,
 )
+if args.softmax_temperature is not None:
+    vlm_agent.semantic_label_processor.cfg.softmax_temperature = args.softmax_temperature
 
 print("Loading the image...", image_path)
 image = Image.open(image_path)
@@ -63,7 +73,11 @@ for img in images:
 if args.labels:
     import json
 
-    labels = json.loads(args.labels)
+    if os.path.isfile(args.labels):
+        with open(args.labels) as f:
+            labels = json.load(f)
+    else:
+        labels = json.loads(args.labels)
     print("Using the provided labels:", labels)
 else:
     print("Asking VLM to analyze the image...")
@@ -102,6 +116,8 @@ for image in images:
         if args.save_images:
             os.makedirs("result", exist_ok=True)
             image_name = os.path.splitext(os.path.basename(image.filename))[0]
+            if args.task != parser.get_default("task"):
+                image_name += f"_{args.task}"
             specific_image_dir = f"result/{image_name}"
             os.makedirs(specific_image_dir, exist_ok=True)
             print(f"Saving images to 'result/{image_name}_input.png'...")
