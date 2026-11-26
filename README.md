@@ -70,6 +70,14 @@ export OPENAI_API_KEY=<your key>   # for OpenAI models (gpt-*)
 export GEMINI_API_KEY=<your key>   # for Gemini models (gemini-*, the default)
 ```
 
+## Try it in the browser
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leggedrobotics/roam/blob/main/demo/vlm_nav_demo.ipynb)
+
+[`demo/`](demo) is a Gradio app: upload a photo, get the VLM labels and the per-pixel maps, and click
+to plan a path. The examples run without an API key. Run it in Colab with the badge above, or locally
+with `python demo/app.py`.
+
 ## Quick start
 
 ```bash

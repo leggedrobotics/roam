@@ -1,0 +1,28 @@
+# Hugging Face Space dependencies. detectron2 is built by app.py on first start (it needs torch at build time).
+torch==2.5.1
+torchvision==0.20.1
+numpy<2
+setuptools
+wheel
+ninja
+huggingface_hub
+google-genai
+openai>=2
+pydantic>=2
+ruamel.yaml
+pyastar2d
+matplotlib
+requests
+opencv-python-headless
+# SAN without its pins (installed by app.py with --no-deps) needs these:
+timm==0.9.10
+open_clip_torch==2.16.0
+fvcore
+iopath
+ftfy
+regex
+scipy
+tabulate
+termcolor
+pycocotools
+wandb>=0.30
