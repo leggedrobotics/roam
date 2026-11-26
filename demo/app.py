@@ -12,6 +12,9 @@ import json
 import os
 import subprocess
 import sys
+import threading
+import time
+from collections import defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -105,18 +108,108 @@ def load_image(image):
     return image
 
 
-def ask_vlm(image, task, model, api_key):
-    """Ask the VLM for labels. A key typed in the UI is used for this request only."""
+class QuotaError(Exception):
+    """The API key hit its rate limit or daily quota (HTTP 429)."""
+
+
+class NeedKey(Exception):
+    """No VLM call possible without the visitor's own key; shown next to the Analyze button."""
+
+
+GET_KEY = "Paste your own [Gemini API key](https://aistudio.google.com/apikey) (free) to keep going, or try one of the examples."
+
+
+def is_quota_error(e):
+    text = str(e)
+    return "429" in text or "RESOURCE_EXHAUSTED" in text or "rate limit" in text.lower()
+
+
+def ask_vlm(image, task, model, api_key, attempts=3):
+    """Ask the VLM for labels with the given key (None: the provider's environment variable)."""
     generator = generators[task]
     try:
-        client = create_client(model, api_key=api_key or None)
+        client = create_client(model, api_key=api_key)
     except Exception as e:
         raise gr.Error(f"Could not create the VLM client: {e}")
-    report = client.ask([image], generator.get_prompt(), generator.response_schema())
-    if report is None:
-        raise gr.Error("The VLM call failed. Check the API key and the model name.")
+    prompt, schema = generator.get_prompt(), generator.response_schema()
+    for attempt in range(attempts):
+        try:
+            report = client._ask([image], prompt, schema)
+            break
+        except Exception as e:
+            print(f"[{model}] request failed (attempt {attempt + 1}/{attempts}): {e}", flush=True)
+            if is_quota_error(e):
+                raise QuotaError(str(e))
+            if attempt + 1 == attempts:
+                raise gr.Error("The VLM call failed. Check the API key and the model name.")
+            time.sleep(2**attempt)
     response = generator.report_to_dict(report)
     return generator.parse_json_response(response), response
+
+
+class SharedKey:
+    """The demo's own Gemini key (Space secret SHARED_GEMINI_API_KEY), so visitors can try a photo without one.
+
+    Use a free-tier AI Studio key with no billing attached: it cannot cost anything, it just returns
+    429 when its quota is used up, and the demo then asks visitors for their own key for a while.
+    Each visitor (Hugging Face user, else IP address) gets `per_visitor` photos per day.
+    """
+
+    def __init__(self, key, per_visitor, pause_s=15 * 60):
+        self.key, self.per_visitor, self.pause_s = key, per_visitor, pause_s
+        self.uses = defaultdict(list)  # visitor -> timestamps of successful calls
+        self.paused_until = 0.0
+        self.lock = threading.Lock()
+
+    def left(self, visitor):
+        now = time.time()
+        with self.lock:
+            self.uses[visitor] = [t for t in self.uses[visitor] if now - t < 24 * 3600]
+            return self.per_visitor - len(self.uses[visitor])
+
+    def ask(self, image, task, visitor):
+        if time.time() < self.paused_until:
+            raise NeedKey("The demo's shared quota is used up for now. " + GET_KEY)
+        if self.left(visitor) <= 0:
+            raise NeedKey(f"You have used today's {photos(self.per_visitor)} on the demo's key. " + GET_KEY)
+        try:
+            result = ask_vlm(image, task, DEFAULT_MODEL, self.key)
+        except QuotaError:
+            self.paused_until = time.time() + self.pause_s
+            raise NeedKey("The demo's shared quota is used up for now. " + GET_KEY)
+        with self.lock:
+            self.uses[visitor].append(time.time())
+        return result
+
+
+# A separate name from GEMINI_API_KEY, which is your own key when you run this locally or in Colab (no limit).
+shared = SharedKey(os.environ["SHARED_GEMINI_API_KEY"], int(os.environ.get("FREE_PHOTOS_PER_DAY", "5"))) \
+    if os.environ.get("SHARED_GEMINI_API_KEY") else None
+
+
+def visitor_id(request):
+    """Logged-in Hugging Face user, else the client IP (Spaces sit behind a proxy)."""
+    if request is None:
+        return "local"
+    if getattr(request, "username", None):
+        return "user:" + request.username
+    forwarded = request.headers.get("x-forwarded-for", "")
+    return "ip:" + (forwarded.split(",")[0].strip() or (request.client.host if request.client else "unknown"))
+
+
+def photos(n):
+    return f"{n} free photo" + ("" if n == 1 else "s")
+
+
+def show_quota(request: gr.Request):
+    return quota_note(visitor_id(request))
+
+
+def quota_note(visitor):
+    if shared is None:
+        return ""
+    left = max(shared.left(visitor), 0)
+    return f"Free photos left today on the demo's key: **{left} of {shared.per_visitor}**."
 
 
 @gpu
@@ -136,7 +229,22 @@ def label_table(labels):
     return [[name] + [values.get(f, "") for f in fields] for name, values in labels.items()], ["label"] + fields
 
 
-def analyze(image, task, model, api_key, labels_text):
+def request_labels(image, task, model, api_key, visitor):
+    if api_key:
+        try:
+            return ask_vlm(image, task, model, api_key)
+        except QuotaError:
+            raise NeedKey("Your API key hit its rate limit or quota. Wait a minute and try again.")
+    if os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY"):
+        return ask_vlm(image, task, model, None)  # your own key (local, Colab): no limit
+    if shared is not None:
+        return shared.ask(image, task, visitor)
+    raise NeedKey("This needs a VLM. " + GET_KEY)
+
+
+def analyze(image, task, model, api_key, labels_text, request: gr.Request = None):
+    visitor = visitor_id(request)
+    api_key = api_key.strip()
     if image is None:
         raise gr.Error("Upload an image first.")
     image = load_image(image)
@@ -147,9 +255,11 @@ def analyze(image, task, model, api_key, labels_text):
             raise gr.Error(f"The labels are not valid JSON: {e}")
         response = None
     else:
-        if not (api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY")):
-            raise gr.Error("Paste a Gemini API key (free at aistudio.google.com/apikey), or try one of the examples.")
-        labels, response = ask_vlm(image, task, model or DEFAULT_MODEL, api_key.strip())
+        try:
+            labels, response = request_labels(image, task, model or DEFAULT_MODEL, api_key, visitor)
+        except NeedKey as e:
+            # Keep the previous results; say why next to the button.
+            return (gr.update(),) * 6 + (f"⚠️ {e}",)
     rows, headers = label_table(labels)
     maps = segment(image, dict(labels), task)
     gallery = [(overlay(image, layer), name) for name, layer in maps.items()]
@@ -161,6 +271,7 @@ def analyze(image, task, model, api_key, labels_text):
         json.dumps(response, indent=2) if response else "(labels given, no VLM call)",
         state,
         draw_plan(state, None),
+        quota_note(visitor),
     )
 
 
@@ -234,19 +345,27 @@ those labels into per-pixel maps, like the ones our legged robot used to hike in
 [arXiv](https://arxiv.org/abs/2611.25215) · [Project page](https://roam-hiking.github.io/) ·
 [Code](https://github.com/leggedrobotics/roam)
 
-The examples run without a key (their labels are cached). For your own photo, paste a
-[Gemini API key](https://aistudio.google.com/apikey) (free tier works). It is used for that request only and never stored.
+{KEY_NOTE}
 """
 
+if shared is not None:
+    KEY_NOTE = (f"The examples always work (their labels are cached). You get {photos(shared.per_visitor)} of your own "
+                "per day on the demo's Gemini key. After that, or when the shared quota runs out, paste your own "
+                "[Gemini API key](https://aistudio.google.com/apikey) (free tier works).")
+else:
+    KEY_NOTE = ("The examples run without a key (their labels are cached). For your own photo, paste a "
+                "[Gemini API key](https://aistudio.google.com/apikey) (free tier works).")
+KEY_NOTE += " A key you paste is used for that request only and never stored."
+
 with gr.Blocks(title="ROAM vlm_nav demo") as demo:
-    gr.Markdown(INTRO)
+    gr.Markdown(INTRO.format(KEY_NOTE=KEY_NOTE))
     state = gr.State()
     with gr.Row():
         with gr.Column(scale=1):
             image_in = gr.Image(type="pil", label="Image", height=360)
             task_in = gr.Dropdown(list(TASKS), value="nature_hiking", label="Task")
             task_help = gr.Markdown(TASKS["nature_hiking"])
-            key_in = gr.Textbox(label="Gemini or OpenAI API key", type="password", placeholder="Not needed for the examples")
+            key_in = gr.Textbox(label="Your Gemini or OpenAI API key (optional)", type="password", placeholder="Not needed for the examples or your free photos")
             with gr.Accordion("Advanced", open=False):
                 model_in = gr.Textbox(DEFAULT_MODEL, label="VLM model (gemini-* or gpt-*)")
                 labels_in = gr.Code(
@@ -254,6 +373,7 @@ with gr.Blocks(title="ROAM vlm_nav demo") as demo:
                     label="Labels (optional). Leave empty to ask the VLM, or edit them and run again to re-segment",
                 )
             run_btn = gr.Button("Analyze", variant="primary")
+            quota_out = gr.Markdown()
         with gr.Column(scale=2):
             gallery = gr.Gallery(label="Per-pixel maps (blue = 0, red = 1)", columns=3, height=300)
             table = gr.Dataframe(headers=["label"], label="VLM labels", interactive=False, wrap=True)
@@ -273,8 +393,9 @@ with gr.Blocks(title="ROAM vlm_nav demo") as demo:
     run_btn.click(
         analyze,
         [image_in, task_in, model_in, key_in, labels_in],
-        [gallery, table, labels_in, response_out, state, plan_img],
+        [gallery, table, labels_in, response_out, state, plan_img, quota_out],
     )
+    demo.load(show_quota, None, quota_out)
     plan_img.select(on_click, state, plan_img)
 
 if __name__ == "__main__":

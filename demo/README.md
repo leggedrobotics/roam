@@ -26,9 +26,17 @@ turns those labels into per-pixel maps. Click on the result to plan a path with 
 - Project page: [roam-hiking.github.io](https://roam-hiking.github.io/)
 - Code: [github.com/leggedrobotics/roam](https://github.com/leggedrobotics/roam)
 
-The examples use cached labels and need no key. For your own photo, paste a
+The examples use cached labels and need no key. Each visitor also gets a few photos of their own per
+day on the demo's Gemini key. After that, or when the shared quota runs out, they can paste their own
 [Gemini API key](https://aistudio.google.com/apikey) (or an OpenAI key with a `gpt-*` model).
-It is used for that one request and not stored.
+A pasted key is used for that one request and not stored.
+
+## Space settings
+
+| Setting | What it does |
+|---|---|
+| Secret `SHARED_GEMINI_API_KEY` | The demo's own key. Use a free-tier AI Studio key with **no billing attached**: it cannot cost anything, and when its quota is used up the demo asks visitors for their own key for 15 minutes. Leave it unset to always ask for a key. |
+| Variable `FREE_PHOTOS_PER_DAY` | Photos per visitor per day on the shared key (default 5). A visitor is their Hugging Face account if logged in, else their IP address. The counts live in memory, so a Space restart resets them. |
 
 ## Run it elsewhere
 
