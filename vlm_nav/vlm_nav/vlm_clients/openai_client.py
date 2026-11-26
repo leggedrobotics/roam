@@ -6,13 +6,20 @@ from .base import T, VLMClient, encode_jpeg_base64
 
 
 class OpenAIClient(VLMClient):
-    """OpenAI Responses API with Structured Outputs. Reads OPENAI_API_KEY from the environment."""
+    """OpenAI Responses API with Structured Outputs. Uses api_key, else OPENAI_API_KEY from the environment."""
 
-    def __init__(self, model: str, image_detail: str = "auto", reasoning_effort: Optional[str] = None, **kwargs):
+    def __init__(
+        self,
+        model: str,
+        image_detail: str = "auto",
+        reasoning_effort: Optional[str] = None,
+        api_key: Optional[str] = None,
+        **kwargs,
+    ):
         super().__init__(model, **kwargs)
         from openai import OpenAI
 
-        self.client = OpenAI()
+        self.client = OpenAI(api_key=api_key)
         self.image_detail = image_detail
         self.reasoning_effort = reasoning_effort
 

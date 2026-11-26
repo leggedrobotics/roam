@@ -10,7 +10,8 @@ OPENAI_COMPAT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/opena
 
 
 class GeminiClient(VLMClient):
-    """Google Gen AI SDK with a JSON response schema. Reads GEMINI_API_KEY or GOOGLE_API_KEY from the environment.
+    """Google Gen AI SDK with a JSON response schema. Uses api_key, else GEMINI_API_KEY or GOOGLE_API_KEY
+    from the environment.
 
     thinking_budget caps the thinking tokens; the default 0 asks for no thinking so the labels come back quickly
     (some models, e.g. gemini-4-hydrogen, still think a little). None leaves the model's own default.
@@ -18,7 +19,7 @@ class GeminiClient(VLMClient):
     OpenAI-compatible endpoint; thinking is then either off (thinking_budget=0) or the model default.
     """
 
-    def __init__(self, model: str, thinking_budget: Optional[int] = 0, **kwargs):
+    def __init__(self, model: str, thinking_budget: Optional[int] = 0, api_key: Optional[str] = None, **kwargs):
         super().__init__(model, **kwargs)
         self.thinking_budget = thinking_budget
         try:
@@ -26,11 +27,11 @@ class GeminiClient(VLMClient):
         except ImportError:
             from openai import OpenAI
 
-            api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+            api_key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
             self.client = None
             self.compat_client = OpenAI(api_key=api_key, base_url=OPENAI_COMPAT_BASE_URL)
         else:
-            self.client = genai.Client()
+            self.client = genai.Client(api_key=api_key)
             self.compat_client = None
 
     def _ask(self, images: List[Image.Image], prompt: str, schema: Type[T]) -> T:
