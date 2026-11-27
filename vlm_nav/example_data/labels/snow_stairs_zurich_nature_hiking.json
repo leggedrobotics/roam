@@ -1,0 +1,47 @@
+{
+  "stairs": {
+    "risk": 0.2,
+    "steppable": 1.0,
+    "preferred_area": 1.0
+  },
+  "paved_path": {
+    "risk": 0.3,
+    "steppable": 1.0,
+    "preferred_area": 0.0
+  },
+  "snow": {
+    "risk": 0.4,
+    "steppable": 1.0,
+    "preferred_area": 0.0
+  },
+  "wall": {
+    "risk": 1.0,
+    "steppable": 0.0,
+    "preferred_area": 0.0
+  },
+  "building": {
+    "risk": 1.0,
+    "steppable": 0.0,
+    "preferred_area": 0.0
+  },
+  "railing": {
+    "risk": 1.0,
+    "steppable": 0.0,
+    "preferred_area": 0.0
+  },
+  "pole": {
+    "risk": 1.0,
+    "steppable": 0.0,
+    "preferred_area": 0.0
+  },
+  "tree": {
+    "risk": 1.0,
+    "steppable": 0.0,
+    "preferred_area": 0.0
+  },
+  "person": {
+    "risk": 1.0,
+    "steppable": 0.0,
+    "preferred_area": 0.0
+  }
+}
